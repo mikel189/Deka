@@ -6,33 +6,54 @@ import pandas as pd
 from flask import Flask, request, jsonify
 
 #load in data
-df = pd.read_pickle('deka_data.pkl')
+listing_ids = pd.read_pickle('listing_data/dataframe_ids.pkl')
 
-nearest_neighbor = pickle.load(open('model101.pkl', 'rb'))
+description_model = pickle.load(open('models/model101.pkl', 'rb'), encoding='latin1')
+numerical_model = pickle.load(open('models/model102.pkl', 'rb'), encoding='latin1')
 
-indices = pd.Series(df.index)
+indices = pd.Series(listing_ids.index)
+# print(indices)
 
 
 app = Flask(__name__)
 
-@app.route('/', methods=['POST'])
+@app.route('/predict_desc', methods=['POST'])
 def recommendation():
 
     similar_listings_id = []
 
     data = request.get_json(force=True)
-    # print(data)
+    print(data)
     # print('loading data.....')
 
-    idx = indices[indices == data].index[0]
-    score_series = pd.Series(nearest_neighbor[idx]).sort_values(ascending=False)
+    idx = indices[indices == data['id']].index[0]
+    # print(idx)
+    score_series = pd.Series(description_model[idx]).sort_values(ascending=False)
     top_x_indexes = list(score_series.iloc[1:21].index)
 
     for i in top_x_indexes:
-        similar_listings_id.append(list(df.index)[i])
+        similar_listings_id.append(list(listing_ids.i)[i])
 
     return jsonify(similar_listings_id)
 
+@app.route('/predict_num', methods=['POST'])
+def recommendation1():
+
+    similar_listings_id = []
+
+    data = request.get_json(force=True)
+    print(data)
+    # print('loading data.....')
+
+    idx = indices[indices == data['id']].index[0]
+    # print(idx)
+    score_series = pd.Series(numerical_model[idx]).sort_values(ascending=False)
+    top_x_indexes = list(score_series.iloc[1:21].index)
+
+    for i in top_x_indexes:
+        similar_listings_id.append(list(listing_ids.index)[i])
+
+    return jsonify(similar_listings_id)
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,0 +1,11 @@
+flask
+python==3.5
+requests
+pickle
+pandas
+numpy
+scikit-learn
+nltk
+matplotlib
+re
+pandas_profiling
